@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>QRtrack - Admin</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="js/admin.js" defer></script>
+</head>
+
+<body class="app-body">
+  <header class="app-header">
+    <h1 id="businessName">QRtrack - Admin</h1>
+    <p id="businessEmail"></p>
+  </header>
+
+  <main class="app-main">
+
+    <!-- LEFT: QR + Public URL -->
+    <section class="card">
+      <h2>Public Ticket QR & Link</h2>
+      <p>This QR is unique for this business. Customers scan it to get their ticket.</p>
+
+      <div class="qr-wrapper">
+        <div id="adminQr"></div>
+
+        <div class="qr-details">
+          <label>Public URL</label>
+          <input id="publicUrl" readonly />
+          <button id="copyUrlBtn" class="btn-primary btn-smallish">Copy URL</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- RIGHT: Counter ticket -->
+    <section class="card">
+      <h2>Create Ticket (Counter)</h2>
+
+      <label for="counterName">Customer Name</label>
+      <input id="counterName" placeholder="Enter customer name" />
+
+      <label for="serviceType">Service Type</label>
+      <select id="serviceType">
+        <option value="General">General</option>
+        <option value="Billing">Billing</option>
+        <option value="Support">Support</option>
+        <option value="Appointment">Appointment</option>
+      </select>
+
+      <button id="generateCounterTicket" class="btn-primary" style="margin-top:0.75rem;">
+        Generate Ticket
+      </button>
+
+      <div id="newTicketDisplay" style="margin-top:10px; font-size:0.95rem; color:#9ca3af;"></div>
+    </section>
+
+    <!-- FULL WIDTH: stats + table -->
+    <section class="card" style="grid-column: 1 / -1;">
+      <h2>Today's Tickets</h2>
+
+      <div class="stats-grid">
+        <div class="stat">
+          <span class="stat-label">WAITING</span>
+          <span id="statWaiting" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">SERVING/NEXT</span>
+          <span id="statServing" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">COMPLETED</span>
+          <span id="statCompleted" class="stat-value">0</span>
+        </div>
+        <div class="stat">
+          <span class="stat-label">CANCELLED</span>
+          <span id="statCancelled" class="stat-value">0</span>
+        </div>
+      </div>
+
+      <div class="table-wrapper">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>Name</th>
+              <th>Service</th>
+              <th>Status</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ticketsTable"></tbody>
+        </table>
+      </div>
+    </section>
+
+    <!-- FULL WIDTH: other links -->
+    <section class="card" style="grid-column:1 / -1;">
+      <h2>Other Links</h2>
+      <p><a id="openPublic" target="_blank">Open Public Ticket Page</a></p>
+      <p><a id="openDisplay" target="_blank">Open Display Screen</a></p>
+      <button id="logoutBtn" class="btn-primary">Logout</button>
+    </section>
+
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+</body>
+
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>QRtrack - Public Ticket Page</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="app-body">
+  <header class="app-header">
+    <h1 id="publicBusinessName">QRtrack</h1>
+    <p id="publicSubheading">Get your ticket by filling the form below.</p>
+  </header>
+
+  <main class="app-main narrow">
+    <section class="card">
+      <h2>Get Your Ticket</h2>
+
+      <form id="joinQueueForm">
+        <label class="label" for="name">Name</label>
+        <input id="name" required />
+
+        <label class="label" for="issue">Reason / Issue</label>
+        <input id="issue" required />
+
+        <!-- <label class="label" for="phone">WhatsApp Number (optional)</label>
+        <input type="tel" id="phone" placeholder="+91XXXXXXXXXX" /> -->
+
+        <div style="margin-top: 8px; display: flex; flex-direction: column; gap: 4px; font-size: 0.85rem;">
+          <label><input type="checkbox" id="notifyPush" /> Notify me via Browser Push</label>
+          <!-- <label><input type="checkbox" id="notifyWhatsapp" /> Notify me via WhatsApp</label> -->
+        </div>
+
+        <button type="submit">Get Ticket</button>
+      </form>
+
+      <div id="publicTicketInfo" class="info-box hidden">
+        <p>Your ticket number:</p>
+        <p id="publicTicketNumber" class="ticket-number"></p>
+        <p>Please wait for your number to appear on the display screen.</p>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <!-- sirf ye ek script chahiye -->
+  <script type="module" src="js/queue.js"></script>
+</body>
+
+</html>

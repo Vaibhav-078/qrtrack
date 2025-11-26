@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>QRtrack - Business Login & Signup</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body class="app-body">
+  <header class="app-header">
+    <h1>QRtrack</h1>
+    <p>Multi-business Smart Queue Management</p>
+  </header>
+
+  <main class="app-main narrow">
+    <section class="card">
+      <div class="tab-header">
+        <button id="tabLogin" class="tab-button active">Login</button>
+        <button id="tabSignup" class="tab-button">Register Business</button>
+      </div>
+
+      <div id="loginPane" class="tab-pane">
+        <h2>Business Login</h2>
+        <form id="loginForm" class="form">
+          <div class="form-row">
+            <label for="loginEmail">Email</label>
+            <input id="loginEmail" type="email" placeholder="business@example.com" required />
+          </div>
+          <div class="form-row">
+            <label for="loginPassword">Password</label>
+            <input id="loginPassword" type="password" required />
+          </div>
+          <button type="submit" class="btn-primary">Login</button>
+        </form>
+      </div>
+
+      <div id="signupPane" class="tab-pane hidden">
+        <h2>Register New Business</h2>
+        <form id="signupForm" class="form">
+          <div class="form-row">
+            <label for="signupName">Business Name</label>
+            <input id="signupName" type="text" placeholder="My Shop / Clinic / Office" required />
+          </div>
+          <div class="form-row">
+            <label for="signupEmail">Business Email</label>
+            <input id="signupEmail" type="email" placeholder="owner@example.com" required />
+          </div>
+          <div class="form-row">
+            <label for="signupPassword">Password</label>
+            <input id="signupPassword" type="password" required />
+          </div>
+          <button type="submit" class="btn-primary">Create Business Account</button>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <div id="toast" class="toast hidden"></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="js/auth.js"></script>
+</body>
+</html>

@@ -1,0 +1,594 @@
+/* Shared styles (multi-business QRtrack) */
+:root {
+  --bg: #4366b7;
+  --bg-light: #111827;
+  --accent: #4f46e5;
+  --accent-soft: rgba(79, 70, 229, 0.12);
+  --text: #f9fafb;
+  --muted: #9ca3af;
+  --danger: #ef4444;
+  --success: #22c55e;
+  --border: #1f2937;
+  --radius: 12px;
+  --font: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+body.app-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  background: radial-gradient(circle at top, #1d2538 0, var(--bg) 55%);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.app-header {
+  padding: 1.5rem 1.5rem 0.5rem;
+  text-align: center;
+}
+
+.app-header h1 {
+  margin: 0;
+  font-size: 1.8rem;
+}
+
+.app-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+}
+
+.app-main {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto 2rem;
+  padding: 0 1rem 2rem;
+  display: grid;
+  grid-template-columns: 2fr 1fr;
+  gap: 1rem;
+}
+
+.app-main.narrow {
+  max-width: 600px;
+  display: block;
+}
+
+.card {
+  background: #0a0422e6;
+  border-radius: var(--radius);
+  border: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.4);
+}
+
+.card h2 {
+  margin-top: 0;
+  font-size: 1.1rem;
+}
+
+/* Tabs on login page */
+.tab-header {
+  display: flex;
+  border-radius: 999px;
+  background: #020617;
+  padding: 0.2rem;
+  margin-bottom: 1rem;
+}
+
+.tab-button {
+  flex: 1;
+  border-radius: 999px;
+  border: none;
+  padding: 0.5rem 0.75rem;
+  background: transparent;
+  color: var(--muted);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.tab-button.active {
+  background: var(--accent);
+  color: white;
+}
+
+.tab-pane {
+  margin-top: 0.25rem;
+}
+
+/* Form */
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  margin-top: 0.5rem;
+}
+
+.form-row {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+label {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+input,
+select {
+  background: #020617;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  padding: 0.6rem 0.7rem;
+  color: var(--text);
+  font-size: 0.95rem;
+  outline: none;
+}
+
+input:focus,
+select:focus {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px rgba(79, 70, 229, 0.4);
+}
+
+button {
+  font: inherit;
+}
+
+.btn-primary {
+  margin-top: 0.25rem;
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: white;
+  border: none;
+  border-radius: 999px;
+  padding: 0.6rem 1.4rem;
+  cursor: pointer;
+  font-weight: 500;
+  align-self: flex-start;
+  box-shadow: 0 12px 30px rgba(79, 70, 229, 0.55);
+  transition: transform 0.1s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+}
+
+.btn-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 18px 45px rgba(79, 70, 229, 0.75);
+}
+
+.btn-primary:active {
+  transform: translateY(0);
+  box-shadow: 0 10px 24px rgba(79, 70, 229, 0.5);
+}
+
+.btn-smallish {
+  padding: 0.4rem 0.8rem;
+  font-size: 0.8rem;
+}
+
+/* Stats */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.stats-grid .stat {
+  background: #020617;
+  border-radius: 10px;
+  padding: 0.6rem 0.7rem;
+  border: 1px solid var(--border);
+  text-align: left;
+}
+
+.stat-label {
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--muted);
+}
+
+.stat-value {
+  display: block;
+  font-size: 1.2rem;
+  margin-top: 0.2rem;
+}
+
+/* Tables */
+.table-wrapper {
+  width: 100%;
+  overflow: auto;
+  margin-top: 0.75rem;
+}
+
+table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.88rem;
+}
+
+th,
+td {
+  padding: 0.5rem 0.6rem;
+  border-bottom: 1px solid var(--border);
+}
+
+th {
+  text-align: left;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+tbody tr:hover {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+/* Info box */
+.info-box {
+  margin-top: 0.75rem;
+  background: var(--accent-soft);
+  border-radius: 10px;
+  border: 1px solid rgba(129, 140, 248, 0.6);
+  padding: 0.65rem 0.75rem;
+  font-size: 0.9rem;
+}
+
+.ticket-number {
+  font-size: 1.4rem;
+  font-weight: 600;
+  margin: 0.25rem 0;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 1.5rem;
+  transform: translateX(-50%);
+  background: #020617;
+  border-radius: 999px;
+  padding: 0.6rem 1.2rem;
+  border: 1px solid var(--border);
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--muted);
+  box-shadow: 0 18px 40px rgba(0, 0, 0, 0.5);
+}
+
+.toast-success {
+  border-color: var(--success);
+  color: var(--success);
+}
+
+.toast-error {
+  border-color: var(--danger);
+  color: var(--danger);
+}
+
+/* QR wrapper for admin page */
+.qr-wrapper {
+  display: flex;
+  gap: 1rem;
+  align-items: center;
+  margin-top: 0.75rem;
+}
+
+.qr-details {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+/* Display page */
+body.display-body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: var(--font);
+  background: radial-gradient(circle at top, #111827 0, #020617 60%);
+  color: var(--text);
+  display: flex;
+  flex-direction: column;
+}
+
+.display-header {
+  padding: 1rem 1.5rem 0.5rem;
+  text-align: center;
+}
+
+.display-header h1 {
+  margin: 0;
+  font-size: 2rem;
+}
+
+.display-header p {
+  margin: 0.25rem 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+}
+
+.display-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+  padding: 0 1.5rem 1.5rem;
+}
+
+.display-card {
+  background: rgba(15, 23, 42, 0.95);
+  border-radius: 18px;
+  border: 1px solid var(--border);
+  padding: 1rem 1.25rem;
+  box-shadow: 0 18px 45px rgba(0, 0, 0, 0.7);
+}
+
+.display-card h2 {
+  margin-top: 0;
+  margin-bottom: 0.75rem;
+  font-size: 1.1rem;
+}
+
+/* Now serving list */
+.now-serving-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.now-serving-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #020617;
+  padding: 0.75rem 1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border);
+}
+
+.now-serving-ticket {
+  font-size: 1.8rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+}
+
+.now-serving-meta {
+  text-align: right;
+  font-size: 0.9rem;
+}
+
+.now-serving-meta span {
+  display: block;
+}
+
+/* Recent list */
+.recent-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  max-height: 100%;
+  overflow-y: auto;
+}
+
+.recent-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: #020617;
+  border-radius: 10px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+/* Display QR */
+.display-qr-wrapper {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 0.5rem;
+}
+
+#displayQr canvas,
+#displayQr img {
+  max-width: 220px;
+  height: auto;
+}
+
+/* Footer */
+.display-footer {
+  padding: 0.5rem 1.5rem 1rem;
+  text-align: right;
+  color: var(--muted);
+}
+
+/* Utility */
+.hidden {
+  display: none !important;
+}
+
+@media (max-width: 900px) {
+  .app-main {
+    grid-template-columns: 1fr;
+  }
+  .display-main {
+    grid-template-columns: 1fr;
+  }
+  .qr-wrapper {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}
+
+
+
+
+
+
+/* =========================
+   ADMIN LAYOUT OVERRIDES
+   ========================== */
+
+/* Admin: 3rd card = Today's Tickets → full row */
+.app-main > .card:nth-of-type(3) {
+  grid-column: 1 / -1;
+}
+
+/* Admin: 4th card = Other Links → full row, thoda gap upar se */
+.app-main > .card:nth-of-type(4) {
+  grid-column: 1 / -1;
+  margin-top: 1.5rem;
+}
+
+
+
+/* =========================
+   DISPLAY PAGE LAYOUT
+   ========================== */
+
+/* 3 cards:
+   1) Now Serving  → full width (row 1)
+   2) Recently Completed → left (row 2)
+   3) Scan to Join Queue → right (row 2)
+*/
+
+/* 2nd row ke liye 2-column grid, left thoda bada */
+.display-main {
+  display: grid;
+  grid-template-columns: 1.8fr 1fr;  /* Recently Completed wider */
+  gap: 20px;
+  padding: 18px;
+}
+
+/* Row 1: Now Serving full width */
+.display-main .display-card:first-of-type {
+  grid-column: 1 / -1;
+}
+
+/* Row 2: Recently Completed left column */
+.display-main > .display-card:nth-child(2) {
+  grid-column: 1 / 2;
+}
+
+/* Row 2: Scan to Join Queue right column */
+.display-main > .display-card:nth-child(3) {
+  grid-column: 2 / 3;
+}
+
+/* === PUBLIC TICKET FORM CLEAN LAYOUT === */
+
+.app-main.narrow .card {
+  max-width: 480px;
+  margin-inline: auto;
+}
+
+#joinQueueForm {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+/* label class jo public form me use ho rahi hai */
+.label {
+  font-size: 0.85rem;
+  color: var(--muted);
+}
+
+/* inputs full width – existing global input se conflict nahi karega */
+#joinQueueForm input[type="text"],
+#joinQueueForm input[type="tel"],
+#joinQueueForm input:not([type]),
+#joinQueueForm textarea {
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* checkboxes column style */
+#joinQueueForm div[style*="flex-direction: column"] {
+  align-items: flex-start;
+}
+
+/* submit button ko theme ke hisaab se pill bana do */
+#joinQueueForm button[type="submit"] {
+  margin-top: 0.4rem;
+  align-self: flex-start;
+  background: var(--success);
+  color: #020617;
+  border: none;
+  border-radius: 999px;
+  padding: 0.55rem 1.4rem;
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: transform 0.05s ease, box-shadow 0.1s ease, opacity 0.1s;
+}
+
+#joinQueueForm button[type="submit"]:hover {
+  opacity: 0.95;
+  box-shadow: 0 8px 18px rgba(34, 197, 94, 0.25);
+}
+
+#joinQueueForm button[type="submit"]:active {
+  transform: translateY(1px);
+  box-shadow: none;
+}
+
+/* === ADMIN TABLE BUTTONS (NEXT / SERVING / DONE / CANCEL) === */
+
+.table td:last-child {
+  white-space: nowrap;
+}
+
+.table button {
+  border: none;
+  border-radius: 999px;
+  padding: 0.45rem 1.1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  cursor: pointer;
+  margin-right: 0.35rem;
+  background: #111827;
+  color: #e5e7eb;
+  box-shadow: 0 8px 16px rgba(15, 23, 42, 0.6);
+  transition: transform 0.05s ease, box-shadow 0.1s ease, opacity 0.1s ease;
+}
+
+.table button[data-action="next"] {
+  /* purane purple Serve style */
+  background: linear-gradient(135deg, #4f46e5, #6366f1);
+  color: #f9fafb;
+}
+
+.table button[data-action="serving"] {
+  /* thoda blue-ish */
+  background: linear-gradient(135deg, #0ea5e9, #38bdf8);
+  color: #0b1120;
+}
+
+.table button[data-action="completed"] {
+  background: linear-gradient(135deg, #22c55e, #4ade80);
+  color: #022c22;
+}
+
+.table button[data-action="cancelled"] {
+  background: #4b5563;
+  color: #e5e7eb;
+}
+
+.table button:hover {
+  opacity: 0.95;
+  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.65);
+}
+
+.table button:active {
+  transform: translateY(1px);
+  box-shadow: 0 5px 10px rgba(0, 0, 0, 0.6);
+}

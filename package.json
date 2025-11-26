@@ -1,0 +1,17 @@
+{
+  "name": "qrtrack-notify",
+  "version": "1.0.0",
+  "description": "QR-based smart queue management (Node + Mongo + Web Push)",
+  "main": "server.js",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "mongoose": "^8.5.0",
+    "node-fetch": "^3.3.2",
+    "web-push": "^3.6.6"
+  }
+}

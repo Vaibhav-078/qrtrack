@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <title>QRtrack - Display Screen</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+
+<body class="display-body">
+  <header class="display-header">
+    <h1 id="displayBusinessName">QRtrack</h1>
+    <p id="displaySubheading">Now Serving</p>
+  </header>
+
+  <main class="display-main">
+    <section class="display-card">
+      <h2>Now Serving</h2>
+      <div id="nowServingList" class="now-serving-list"></div>
+    </section>
+
+    <section class="display-card">
+      <h2>Recently Completed</h2>
+      <div id="recentlyCompletedList" class="recent-list"></div>
+    </section>
+
+    <section class="display-card">
+      <h2>Scan to Join Queue</h2>
+      <p style="color: #9ca3af; font-size: 0.9rem; margin-bottom: 0.5rem;">
+        Open your camera / QR scanner and scan this code to get your ticket.
+      </p>
+      <div class="display-qr-wrapper">
+        <div id="displayQr"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="display-footer">
+    <span id="displayTime"></span>
+  </footer>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script type="module" src="js/display.js"></script>
+</body>
+
+</html>
