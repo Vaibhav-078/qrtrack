@@ -33,7 +33,7 @@ function showToast(msg) {
 // ---- Push subscription (Web Push, NOT Firebase) ----
 // yahi public VAPID key use hogi (jo tumne server.js me use ki hai)
 const VAPID_PUBLIC_KEY =
-  "BKSifakSlI29fS2A-S5pNoHzk0445zUCpUpFinNT525g-nv66n9SZpxgJEhtvgT98RG475X8e2j7veHmy9XcDLo";
+  "BDn9Aq--3pPRnn8m0MxF0DnQ-AtwwZphsNiYTGbWaVHGrPseHZodRPns3VgUkobdZh_KQ3_9vGGc1nJxzofdBX4";
 
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
