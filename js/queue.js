@@ -1,27 +1,45 @@
-// js/queue.js
+const VAPID_PUBLIC_KEY = "BGgJi7ZdOEKrFWDgkhpDRvNv6SRdTrNNy3-iGDIqQu9f8oHJOy421P0yqjL6-h9eRUPb0Ea3Gi79z-4wH-vzhYI";
 
-const VAPID_PUBLIC_KEY = "BLYm3AiKgdDEYNAv3XvJs4eLG_XnKppnqu1K7MKOBTTpd2o_okkzvt1jj9ipzaxw1-KaIfm1aTn7daMZVrGMvvc"; // same as .env me
+// ⬇️ ADD THIS FOR DEBUG
+console.log("CLIENT VAPID PUBLIC starts with:", VAPID_PUBLIC_KEY.slice(0, 25));
+console.log("CLIENT VAPID PUBLIC length:", VAPID_PUBLIC_KEY.length);
 
+// --- helper: base64 -> Uint8Array ---
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding)
-    .replace(/-/g, "+")
-    .replace(/_/g, "/");
-  const rawData = atob(base64);
-  const output = new Uint8Array(rawData.length);
-  for (let i = 0; i < rawData.length; ++i) {
-    output[i] = rawData.charCodeAt(i);
-  }
-  return output;
+  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
+  return Uint8Array.from(atob(base64), (c) => c.charCodeAt(0));
 }
 
+// --- 1) Page load pe SW register ---
+async function registerServiceWorker() {
+  if (!("serviceWorker" in navigator)) {
+    console.log("Service worker not supported");
+    return null;
+  }
+
+  try {
+    const reg = await navigator.serviceWorker.register("/push-sw.js", {
+      scope: "/",
+    });
+    console.log("✅ SW registered:", reg);
+    return reg;
+  } catch (err) {
+    console.error("❌ SW register error:", err);
+    return null;
+  }
+}
+
+// --- 2) Push subscription banane ka helper ---
 async function getPushSubscription() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
     console.log("Push not supported");
     return null;
   }
 
-  const registration = await navigator.serviceWorker.register("/push-sw.js");
+  // Wait for existing SW
+  const reg = await navigator.serviceWorker.ready;
+  console.log("✅ SW ready:", reg);
 
   const permission = await Notification.requestPermission();
   if (permission !== "granted") {
@@ -29,16 +47,42 @@ async function getPushSubscription() {
     return null;
   }
 
-  const subscription = await registration.pushManager.subscribe({
-    userVisibleOnly: true,
-    applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-  });
+  // Reuse if already subscribed
+  let sub = await reg.pushManager.getSubscription();
+  if (!sub) {
+    sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
+    });
+    console.log("🛰 Created new subscription:", sub);
+  } else {
+    console.log("🛰 Reusing existing subscription:", sub);
+  }
 
-  return subscription;
+  return sub;
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+// --- 3) DOM / form logic ---
+document.addEventListener("DOMContentLoaded", async () => {
+  // SW register as soon as page loads
+  await registerServiceWorker();
+
   const form = document.getElementById("joinQueueForm");
+  const nameEl = document.getElementById("publicBusinessName");
+  const subEl = document.getElementById("publicSubheading");
+
+  const urlParams = new URLSearchParams(window.location.search);
+  const businessId = urlParams.get("biz") || "defaultBiz";
+  const queueId = urlParams.get("queue") || "defaultQueue";
+  const businessNameFromUrl = urlParams.get("name") || null;
+
+  if (businessNameFromUrl && nameEl) {
+    nameEl.textContent = businessNameFromUrl;
+  }
+  if (businessNameFromUrl && subEl) {
+    subEl.textContent = `Get your ticket for ${businessNameFromUrl} by filling the form below.`;
+  }
+
   if (!form) return;
 
   form.addEventListener("submit", async (e) => {
@@ -49,29 +93,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const phone = document.getElementById("phone")?.value.trim();
     const notifyPush = document.getElementById("notifyPush")?.checked;
     const notifyWhatsapp = document.getElementById("notifyWhatsapp")?.checked;
-
-// URL se business info nikaalo
-const urlParams = new URLSearchParams(window.location.search);
-const businessId = urlParams.get("biz") || "defaultBiz";
-const queueId = urlParams.get("queue") || "defaultQueue";
-const businessNameFromUrl = urlParams.get("name") || null;
-
-// Heading update
-document.addEventListener("DOMContentLoaded", () => {
-  const nameEl = document.getElementById("publicBusinessName");
-  const subEl = document.getElementById("publicSubheading");
-
-  if (businessNameFromUrl && nameEl) {
-    nameEl.textContent = businessNameFromUrl;
-  }
-
-  if (businessNameFromUrl && subEl) {
-    subEl.textContent = `Get your ticket for ${businessNameFromUrl} by filling the form below.`;
-  }
-
-  // agar tumhara form submit wala code yahi DOMContentLoaded ke andar hai
-  // to usko yahin rehne do; sirf upar ka heading part add karna hai
-});
 
     let pushSubscription = null;
     if (notifyPush) {
@@ -87,7 +108,7 @@ document.addEventListener("DOMContentLoaded", () => {
           queueId,
           name,
           issue,
-          notifyPush,
+          notifyPush: !!pushSubscription,
           pushSubscription,
           notifyWhatsapp,
           whatsappNumber: phone,
@@ -99,7 +120,7 @@ document.addEventListener("DOMContentLoaded", () => {
       alert("Ticket created! We'll notify you when your turn is next.");
       form.reset();
     } catch (err) {
-      console.error(err);
+      console.error("❌ Error while creating ticket:", err);
       alert("Error while creating ticket");
     }
   });
