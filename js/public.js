@@ -1,149 +1,127 @@
-// js/public.js  (NO Firebase, talks to Node API)
+// js/public.js
 
-// --- URL params se business / queue / name read karo ---
 const urlParams = new URLSearchParams(window.location.search);
 const businessId = urlParams.get("biz") || "defaultBiz";
 const queueId = urlParams.get("queue") || "defaultQueue";
 const businessName = urlParams.get("name") || "QRtrack";
 
-// Form & fields
-const form = document.getElementById("joinQueueForm");
-const nameInput = document.getElementById("name");
-const issueInput = document.getElementById("issue");
-const phoneInput = document.getElementById("phone");
-const notifyPushInput = document.getElementById("notifyPush");
-const notifyWhatsappInput = document.getElementById("notifyWhatsapp");
-
-// Simple toast helper (optional)
-function showToast(msg) {
-  const toast = document.getElementById("toast");
-  if (!toast) {
-    alert(msg);
-    return;
-  }
-  toast.textContent = msg;
-  toast.classList.remove("hidden");
-  toast.classList.add("toast-success");
-  setTimeout(() => {
-    toast.classList.add("hidden");
-    toast.classList.remove("toast-success");
-  }, 2200);
-}
-
-// ---- Push subscription (Web Push, NOT Firebase) ----
-// yahi public VAPID key use hogi (jo tumne server.js me use ki hai)
+// --- VAPID public key EXACTLY same jo .env me VAPID_PUBLIC_KEY hai ---
 const VAPID_PUBLIC_KEY =
-  "BDn9Aq--3pPRnn8m0MxF0DnQ-AtwwZphsNiYTGbWaVHGrPseHZodRPns3VgUkobdZh_KQ3_9vGGc1nJxzofdBX4";
+  "BGgJi7ZdOEKrFWDgkhpDRvNv6SRdTrNNy3-iGDIqQu9f8oHJOy421P0yqjL6-h9eRUPb0Ea3Gi79z-4wH-vzhYI";
 
+// helper: urlBase64 string -> Uint8Array (pushManager ke liye)
 function urlBase64ToUint8Array(base64String) {
   const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-  const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-  const rawData = atob(base64);
+  const base64 = (base64String + padding)
+    .replace(/-/g, "+")
+    .replace(/_/g, "/");
+
+  const rawData = window.atob(base64);
   const outputArray = new Uint8Array(rawData.length);
+
   for (let i = 0; i < rawData.length; ++i) {
     outputArray[i] = rawData.charCodeAt(i);
   }
   return outputArray;
 }
 
-async function subscribeForPushIfNeeded() {
+async function getPushSubscription() {
   if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-    console.log("Push/ServiceWorker not supported in this browser.");
+    console.log("❌ Push not supported in this browser");
     return null;
   }
 
   try {
-    const permission = await Notification.requestPermission();
-    if (permission !== "granted") {
-      console.log("Notification permission not granted");
-      return null;
-    }
-
-    // service worker register
+    // same SW file jo root me hai (firebase-messaging-sw.js)
     const reg = await navigator.serviceWorker.register(
-      "/firebase-messaging-sw.js" // generic SW file, name reused
+      "/firebase-messaging-sw.js"
     );
+    console.log("✅ Service worker registered", reg);
 
-    // existing subscription?
     let sub = await reg.pushManager.getSubscription();
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
         applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
       });
+      console.log("🛰 New push subscription:", sub);
+    } else {
+      console.log("🛰 Existing push subscription:", sub);
     }
 
-    console.log("Push subscription:", sub);
     return sub;
   } catch (err) {
-    console.error("Error during push subscription:", err);
+    console.error("❌ Error creating push subscription", err);
     return null;
   }
 }
 
-// ---- Form submit ----
+const form = document.getElementById("joinQueueForm");
+const toast = document.getElementById("toast");
+
+function showToast(message, type = "success") {
+  if (!toast) return;
+  toast.textContent = message;
+  toast.classList.remove("hidden", "toast-success", "toast-error");
+  toast.classList.add(type === "error" ? "toast-error" : "toast-success");
+  toast.style.opacity = "1";
+
+  setTimeout(() => {
+    toast.style.opacity = "0";
+  }, 2500);
+}
+
 if (form) {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
 
-    const name = nameInput.value.trim();
-    const issue = issueInput.value.trim();
-    const phone = phoneInput.value.trim();
-    const notifyPush = notifyPushInput.checked;
-    const notifyWhatsapp = notifyWhatsappInput.checked;
-
-    if (!name || !issue) {
-      showToast("Please fill name and issue");
-      return;
-    }
+    const name = document.getElementById("name").value.trim();
+    const issue = document.getElementById("issue").value.trim();
+    const phone = document.getElementById("phone").value.trim();
+    const notifyPush = document.getElementById("notifyPush").checked;
+    const notifyWhatsapp = document.getElementById("notifyWhatsapp").checked;
 
     let pushSubscription = null;
+
     if (notifyPush) {
-      pushSubscription = await subscribeForPushIfNeeded();
-      if (!pushSubscription) {
-        showToast("Browser push not enabled, continuing without it.");
+      const permission = await Notification.requestPermission();
+      if (permission !== "granted") {
+        alert("Please allow notifications to receive browser alerts.");
+      } else {
+        pushSubscription = await getPushSubscription();
       }
     }
-
-    const payload = {
-      businessId,
-      queueId,
-      name,
-      issue,
-      notifyPush: !!(notifyPush && pushSubscription),
-      pushSubscription: pushSubscription || null,
-      notifyWhatsapp: !!(notifyWhatsapp && phone),
-      whatsappNumber: phone || null,
-    };
 
     try {
       const res = await fetch("/api/tickets", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
+        body: JSON.stringify({
+          businessId,
+          queueId,
+          name,
+          issue,
+          notifyPush: !!pushSubscription,
+          pushSubscription,
+          notifyWhatsapp: notifyWhatsapp && !!phone,
+          whatsappNumber: phone || null,
+        }),
       });
 
-      const data = await res.json();
       if (!res.ok) {
-        console.error("Create ticket error:", data);
-        showToast(data.error || "Failed to create ticket");
+        console.error("❌ Ticket create error:", await res.text());
+        alert("Something went wrong while creating ticket.");
         return;
       }
 
-      console.log("Ticket created:", data);
+      const data = await res.json();
+      console.log("🎫 Ticket created:", data);
       showToast("Ticket created! We'll notify you when your turn is next.");
-      form.reset();
 
-      const ticketInfo = document.getElementById("publicTicketInfo");
-      const ticketNumberEl = document.getElementById("publicTicketNumber");
-      if (ticketInfo && ticketNumberEl) {
-        const label = data._id ? data._id.toString().slice(-5) : "";
-        ticketNumberEl.textContent = label;
-        ticketInfo.classList.remove("hidden");
-      }
+      form.reset();
     } catch (err) {
-      console.error("Error creating ticket:", err);
-      showToast("Something went wrong while creating ticket.");
+      console.error("❌ Ticket create error:", err);
+      alert("Something went wrong while creating ticket.");
     }
   });
 }

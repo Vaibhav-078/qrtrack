@@ -1,11 +1,5 @@
 // js/auth.js
-// Handles login & signup for businesses using the localStorage "db".
-
-import {
-  createBusiness,
-  findBusinessByEmail,
-  setCurrentBusinessId
-} from "./db-mock.js";
+// Handles login & signup for businesses using the real backend API (MongoDB).
 
 const toast = document.getElementById("toast");
 let toastTimeout;
@@ -42,11 +36,35 @@ if (tabLogin && tabSignup && loginPane && signupPane) {
   });
 }
 
-// Signup form
+// Helper: call backend
+async function apiPost(path, body) {
+  const res = await fetch(path, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
+
+  let data = null;
+  try {
+    data = await res.json();
+  } catch (_) {
+    // ignore
+  }
+
+  if (!res.ok) {
+    const msg = (data && data.error) || "Request failed";
+    throw new Error(msg);
+  }
+  return data;
+}
+
+/* ========== SIGNUP ========== */
+
 const signupForm = document.getElementById("signupForm");
 if (signupForm) {
-  signupForm.addEventListener("submit", (e) => {
+  signupForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const name = document.getElementById("signupName").value.trim();
     const email = document.getElementById("signupEmail").value.trim();
     const password = document.getElementById("signupPassword").value;
@@ -57,34 +75,75 @@ if (signupForm) {
     }
 
     try {
-      const business = createBusiness({ name, email, password });
-      setCurrentBusinessId(business.id);
+      // yaha backend pe business create hoga (MongoDB me)
+      const data = await apiPost("/api/register", {
+        businessName: name,
+        email,
+        password,
+      });
+
+      const bizId = data.businessId;
+      const bizName = data.businessName || name;
+
+      // optional: localStorage me store kar sakte ho
+      localStorage.setItem(
+        "qrtrack_current_business",
+        JSON.stringify({ bizId, bizName, email })
+      );
+
       showToast("Business registered successfully");
-      const url = `admin.html?biz=${encodeURIComponent(business.id)}`;
+
+      // admin ko redirect
+      const url = `admin.html?biz=${encodeURIComponent(
+        bizId
+      )}&queue=${encodeURIComponent(
+        "defaultQueue"
+      )}&name=${encodeURIComponent(bizName)}`;
       window.location.href = url;
     } catch (err) {
-      showToast(err.message, "error");
+      console.error(err);
+      showToast(err.message || "Registration failed", "error");
     }
   });
 }
 
-// Login form
+/* ========== LOGIN ========== */
+
 const loginForm = document.getElementById("loginForm");
 if (loginForm) {
-  loginForm.addEventListener("submit", (e) => {
+  loginForm.addEventListener("submit", async (e) => {
     e.preventDefault();
+
     const email = document.getElementById("loginEmail").value.trim();
     const password = document.getElementById("loginPassword").value;
 
-    const business = findBusinessByEmail(email);
-    if (!business || business.password !== password) {
-      showToast("Invalid email or password", "error");
+    if (!email || !password) {
+      showToast("Please enter email and password", "error");
       return;
     }
 
-    setCurrentBusinessId(business.id);
-    showToast("Login successful");
-    const url = `admin.html?biz=${encodeURIComponent(business.id)}`;
-    window.location.href = url;
+    try {
+      const data = await apiPost("/api/login", { email, password });
+
+      const bizId = data.businessId;
+      const bizName = data.businessName || "QRtrack";
+
+      localStorage.setItem(
+        "qrtrack_current_business",
+        JSON.stringify({ bizId, bizName, email })
+      );
+
+      showToast("Login successful");
+
+      const url = `admin.html?biz=${encodeURIComponent(
+        bizId
+      )}&queue=${encodeURIComponent(
+        "defaultQueue"
+      )}&name=${encodeURIComponent(bizName)}`;
+      window.location.href = url;
+    } catch (err) {
+      console.error(err);
+      showToast(err.message || "Invalid email or password", "error");
+    }
   });
 }

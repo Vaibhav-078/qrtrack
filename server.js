@@ -16,10 +16,16 @@ const app = express();
 
 // ====== CONFIG ======
 const PORT = process.env.PORT || 3000;
-const MONGO_URI = process.env.MONGO_URI;
-const VAPID_PUBLIC_KEY = process.env.VAPID_PUBLIC_KEY;
-const VAPID_PRIVATE_KEY = process.env.VAPID_PRIVATE_KEY;
-const CALLMEBOT_KEY = process.env.CALLMEBOT_KEY;
+
+// ENV se values lo
+const MONGO_URI = (process.env.MONGO_URI || "").trim();
+const VAPID_PUBLIC_KEY = (process.env.VAPID_PUBLIC_KEY || "").trim();
+const VAPID_PRIVATE_KEY = (process.env.VAPID_PRIVATE_KEY || "").trim();
+const CALLMEBOT_KEY = (process.env.CALLMEBOT_KEY || "").trim();
+
+// Debug logs
+console.log("SERVER VAPID PUBLIC starts with:", VAPID_PUBLIC_KEY.slice(0, 25));
+console.log("SERVER VAPID PUBLIC length:", VAPID_PUBLIC_KEY.length);
 
 // ====== DB CONNECT ======
 mongoose
@@ -27,7 +33,21 @@ mongoose
   .then(() => console.log("✅ MongoDB connected"))
   .catch((err) => console.error("❌ MongoDB error:", err));
 
-// ====== MODELS ======
+// ====== SCHEMAS & MODELS ======
+
+// --- Business Schema (for login / signup) ---
+const businessSchema = new mongoose.Schema(
+  {
+    businessName: { type: String, required: true },
+    email: { type: String, required: true, unique: true },
+    password: { type: String, required: true }, // simple text for now
+  },
+  { timestamps: true }
+);
+
+const Business = mongoose.model("Business", businessSchema);
+
+// --- Ticket Schema (queue tickets) ---
 const ticketSchema = new mongoose.Schema(
   {
     businessId: { type: String, required: true },
@@ -51,19 +71,24 @@ const Ticket = mongoose.model("Ticket", ticketSchema);
 
 // ====== WEB PUSH CONFIG ======
 if (VAPID_PUBLIC_KEY && VAPID_PRIVATE_KEY) {
-  webpush.setVapidDetails(
-    "mailto:you@example.com",
-    VAPID_PUBLIC_KEY,
-    VAPID_PRIVATE_KEY
-  );
+  try {
+    webpush.setVapidDetails(
+      "mailto:you@example.com",
+      VAPID_PUBLIC_KEY,
+      VAPID_PRIVATE_KEY
+    );
+    console.log("✅ Push enabled (VAPID OK)");
+  } catch (err) {
+    console.error("❌ VAPID config error:", err);
+  }
 } else {
-  console.warn("⚠️ VAPID keys missing – push notifications disabled");
+  console.warn("⚠️ VAPID keys missing – push disabled");
 }
 
 // ====== MIDDLEWARE ======
 app.use(express.json());
 
-// Static files – frontend (HTML/CSS/JS same folder se serve honge)
+// Static files – frontend yahi se serve honge
 app.use(express.static(__dirname));
 
 // ====== HELPERS ======
@@ -93,11 +118,18 @@ async function sendPushNotification(subscription, payload) {
     console.log("⚠️ Push disabled (no VAPID keys)");
     return;
   }
+
+  console.log("🛰 Trying to send push to subscription:", subscription);
+
   try {
     await webpush.sendNotification(subscription, JSON.stringify(payload));
-    console.log("🔔 Push notification sent");
+    console.log("✅ Push notification sent");
   } catch (err) {
-    console.error("❌ Push error:", err);
+    console.error(
+      "❌ Push error:",
+      err.statusCode || "",
+      err.body ? err.body.toString() : err
+    );
   }
 }
 
@@ -107,6 +139,81 @@ async function sendPushNotification(subscription, payload) {
 app.get("/api/health", (req, res) => {
   res.json({ ok: true });
 });
+
+/* ======================================
+   AUTH ROUTES  (/api/register, /api/login)
+   ====================================== */
+
+// Register business (signup)
+app.post("/api/register", async (req, res) => {
+  try {
+    const { businessName, email, password } = req.body;
+
+    if (!businessName || !email || !password) {
+      return res
+        .status(400)
+        .json({ error: "businessName, email and password are required" });
+    }
+
+    // check duplicate email
+    const existing = await Business.findOne({ email });
+    if (existing) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    const biz = await Business.create({ businessName, email, password });
+
+    console.log("🏢 New business registered:", biz._id.toString(), email);
+
+    return res.status(201).json({
+      success: true,
+      businessId: biz._id.toString(),
+      businessName: biz.businessName,
+    });
+  } catch (err) {
+    console.error("❌ register error:", err);
+
+    // duplicate key handle
+    if (err.code === 11000) {
+      return res.status(400).json({ error: "Email already registered" });
+    }
+
+    return res.status(500).json({ error: "Failed to register business" });
+  }
+});
+
+// Login business
+app.post("/api/login", async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ error: "email and password are required" });
+    }
+
+    const biz = await Business.findOne({ email });
+    if (!biz || biz.password !== password) {
+      return res.status(401).json({ error: "Invalid email or password" });
+    }
+
+    console.log("✅ Business login:", biz._id.toString(), email);
+
+    return res.json({
+      success: true,
+      businessId: biz._id.toString(),
+      businessName: biz.businessName,
+    });
+  } catch (err) {
+    console.error("❌ login error:", err);
+    return res.status(500).json({ error: "Login failed" });
+  }
+});
+
+/* ============================
+   TICKET ROUTES (queue system)
+   ============================ */
 
 // CREATE TICKET (public + counter)
 app.post("/api/tickets", async (req, res) => {
@@ -138,6 +245,8 @@ app.post("/api/tickets", async (req, res) => {
       notifyWhatsapp: !!notifyWhatsapp && !!whatsappNumber,
       whatsappNumber: notifyWhatsapp ? whatsappNumber : null,
     });
+
+    console.log("🎫 Ticket created:", ticket._id.toString(), name);
 
     res.status(201).json(ticket);
   } catch (err) {
@@ -182,23 +291,40 @@ app.patch("/api/tickets/:id/status", async (req, res) => {
     ticket.status = status;
     await ticket.save();
 
+    console.log(
+      `🔄 Status change: ${ticket._id.toString()} (${ticket.name}) ${oldStatus} -> ${status}`
+    );
+
     // Only when ticket becomes NEXT
     if (oldStatus !== "next" && status === "next") {
+      console.log("👉 Ticket became NEXT, will notify user");
+
       const label = ticket._id.toString().slice(-5);
 
       // Push
       if (ticket.notifyPush && ticket.pushSubscription) {
+        console.log("🛰 notifyPush = true, pushSubscription present");
         await sendPushNotification(ticket.pushSubscription, {
           title: "Your ticket is next 🎟️",
           body: `Please get ready, your turn is coming (Ticket ${label}).`,
           ticketId: ticket._id.toString(),
         });
+      } else {
+        console.log(
+          "⚠️ Skipping push: notifyPush=",
+          ticket.notifyPush,
+          "pushSubscription=",
+          ticket.pushSubscription
+        );
       }
 
       // WhatsApp (optional)
       if (ticket.notifyWhatsapp && ticket.whatsappNumber) {
+        console.log("📲 Sending WhatsApp to", ticket.whatsappNumber);
         const msg = `🎫 QRtrack Alert\nYour ticket is NEXT. Please proceed to the counter. (Ticket ${label})`;
         await sendWhatsApp(ticket.whatsappNumber, msg);
+      } else {
+        console.log("ℹ️ No WhatsApp notification for this ticket");
       }
     }
 

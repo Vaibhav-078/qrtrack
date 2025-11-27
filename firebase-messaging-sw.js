@@ -1,18 +1,30 @@
-// firebase-messaging-sw.js  (ab generic web-push SW)
+// firebase-messaging-sw.js
+// Ab FCM nahi, plain Web Push ke liye SW
+
+self.addEventListener("install", (event) => {
+  console.log("[SW] Installed");
+  self.skipWaiting();
+});
+
+self.addEventListener("activate", (event) => {
+  console.log("[SW] Activated");
+});
 
 self.addEventListener("push", (event) => {
+  console.log("[SW] Push event received:", event);
+
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
   } catch (e) {
-    console.error("Push event data parse error:", e);
+    console.error("[SW] Error parsing push data", e);
   }
 
   const title = data.title || "QRtrack Notification";
   const options = {
     body: data.body || "",
-    icon: "/icon-192.png", // optional
-    badge: "/icon-72.png", // optional
+    icon: "/icon-192.png", // optional, agar tumhare paas ye icons nahi to hata sakte ho
+    badge: "/icon-72.png",
     data,
   };
 
@@ -21,14 +33,5 @@ self.addEventListener("push", (event) => {
 
 self.addEventListener("notificationclick", (event) => {
   event.notification.close();
-  event.waitUntil(
-    clients.matchAll({ type: "window", includeUncontrolled: true }).then((clientList) => {
-      if (clientList.length > 0) {
-        return clientList[0].focus();
-      }
-      if (self.registration.scope) {
-        return clients.openWindow(self.registration.scope);
-      }
-    })
-  );
+  // future me yahan se specific page open kara sakte ho
 });

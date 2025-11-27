@@ -1,20 +1,18 @@
 // push-sw.js
-
 self.addEventListener("push", (event) => {
-  if (!event.data) return;
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {}
 
-  const payload = event.data.json();
-  const title = payload.title || "QRtrack Update";
-  const options = {
-    body: payload.body || "",
-    // icon: "/icon-192.png", // agar nahi hai to hata do
-    data: payload,
-  };
+  const title = data.title || "QRtrack Alert";
+  const body = data.body || "You have a notification from QRtrack.";
 
-  event.waitUntil(self.registration.showNotification(title, options));
-});
-
-self.addEventListener("notificationclick", (event) => {
-  event.notification.close();
-  // yahan koi URL open kara sakte ho in future
+  event.waitUntil(
+    self.registration.showNotification(title, {
+      body,
+      icon: "/favicon.ico", // optional, ignore 404
+      vibrate: [200, 100, 200],
+    })
+  );
 });
